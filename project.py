@@ -7,7 +7,7 @@ from flask import (
         )
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
-from database_setup import Base, Restaurant, MenuItem
+from user_database_setup import Base, Restaurant, MenuItem, User
 from flask import session as login_session
 import random
 import string
@@ -111,6 +111,7 @@ def gconnect():
     answer = requests.get(userinfo_url, params=params)
 
     data = answer.json()
+    print data
 
     #login_session['username'] = data['name']
     login_session['picture'] = data['picture']
@@ -119,7 +120,7 @@ def gconnect():
 
     output = ''
     output += '<h1>Welcome, '
-    #output += login_session['username']
+   # output += login_session['username']
     output += '!</h1>'
     output += '<img src="'
     output += login_session['picture']
@@ -127,7 +128,7 @@ def gconnect():
                     height: 300px;border-radius:
                     150px;-webkit-border-radius:
                     150px;-moz-border-radius: 150px;"> '''
-    flash("you are now logged in as Denis Ceban")
+    #flash("you are now logged in as {}".format(login_session('username')))
     print "done!"
     return output
 
@@ -329,6 +330,19 @@ def deleteMenuItem(restaurant_id, menu_id):
         return redirect(url_for('showMenu', restaurant_id=restaurant_id))
     else:
         return render_template('deleteMenuItem.html', item=itemToDelete)
+
+
+def createUser(login_session):
+    newUser = User(
+            name=login_session['username'],
+            email=login_session['email'],
+            picture=login_session['picture']
+            )
+    session.add(newUser)
+    session.commit()
+    user = session.query(User).filter_by(email=login_session['email'].one())
+    session.close()
+    return user.id
 
 
 if __name__ == '__main__':
